@@ -17,6 +17,9 @@ import { projectRoutes } from './routes/projects.js';
 import { fileRoutes } from './routes/files.js';
 import { notificationRoutes } from './routes/notifications.js';
 
+// Import services
+import { initializeScheduler } from './services/scheduler.js';
+
 // Environment variables
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const HOST = process.env.HOST || '0.0.0.0';
@@ -137,6 +140,14 @@ async function start() {
 
     await fastify.listen({ port: PORT, host: HOST });
     fastify.log.info(`Server listening on http://${HOST}:${PORT}`);
+
+    // Initialize scheduled tasks
+    if (process.env.NODE_ENV === 'production' || process.env.ENABLE_SCHEDULER === 'true') {
+      initializeScheduler();
+      fastify.log.info('Scheduler initialized');
+    } else {
+      fastify.log.info('Scheduler disabled (set ENABLE_SCHEDULER=true to enable in development)');
+    }
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
